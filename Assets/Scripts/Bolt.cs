@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using UnityEngine;
 
 [RequireComponent(typeof(Renderer))]
@@ -10,7 +9,7 @@ public class Bolt : MonoBehaviour
     [SerializeField]
     private GameObject nut;
     private Animator nutAnimator;
-    private void Start()
+    private void Awake()
     {
         rendererComponent = GetComponent<Renderer>();
         mat = rendererComponent.material;

@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -19,8 +20,13 @@ public class GameManager : MonoBehaviour
 
     private bool canSelectBolts;
 
+    [Header("UI")]
+    [SerializeField]
+    private GameObject WinCanvas;
+
     private void Start()
     {
+        WinCanvas.SetActive(false);
         StartCoroutine(TutorialRoutine());
     }
 
@@ -75,11 +81,11 @@ public class GameManager : MonoBehaviour
 
         if (isCorrect)
         {
-            StartCoroutine(GoodFeedbackRoutine(selectedBolt));
             HandleCorrectSelection();
         }
         else
         {
+            HandleIncorrectSelection();
             StartCoroutine(BadFeedbackRoutine(selectedBolt));
         }
 
@@ -94,21 +100,39 @@ public class GameManager : MonoBehaviour
     private void HandleCorrectSelection()
     {
         Debug.Log("correct");
+        StartCoroutine(GoodFeedbackRoutine(selectedBolt));
+
+        ApplyStepAction(selectedBolt);
 
         boltIndex++;
 
-        if (boltIndex < boltsInOrder.Length)
-            return;
-
-        boltIndex = 0;
-        currentStep++;
+        if (boltIndex >= boltsInOrder.Length)
+        {
+            boltIndex = 0;
+            currentStep++;
+        }
 
         Debug.Log($"Step {currentStep} completed");
     }
+    private void ApplyStepAction(Bolt bolt)
+    {
+        if (currentStep == 0)
+        {
+            bolt.PlaceNut();
+        }
+        else if (currentStep == 1)
+        {
+            bolt.Screw();
+        }
+    }
+    private void HandleIncorrectSelection()
+    {
+        StartCoroutine(BadFeedbackRoutine(selectedBolt));
+    }
 
     // -------------------- GAME FLOW --------------------
-
-    private void Restart()
+    // is called from restart button
+    public void Restart()
     {
         currentStep = 0;
         boltIndex = 0;
@@ -118,7 +142,14 @@ public class GameManager : MonoBehaviour
             bolt.Reset();
         }
 
+        WinCanvas.SetActive(false);
+        
         StartCoroutine(TutorialRoutine());
+    }
+    private void Win()
+    {
+        canSelectBolts = false;
+        WinCanvas.SetActive(true);
     }
 
     // -------------------- COROUTINES --------------------
@@ -157,5 +188,10 @@ public class GameManager : MonoBehaviour
         bolt.ResetHighlight();
 
         canSelectBolts = true;
+
+        if(currentStep == 2)
+        {
+            Win();
+        }
     }
 }
